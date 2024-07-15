@@ -35,4 +35,14 @@ describe('Blog app', () => {
       await expect(page.getByText('Andrew Padgett logged in')).not.toBeVisible()
     })
   })
+
+  describe('when logged in', () => {
+    beforeEach(async ({ page }) => {
+      await loginWith(page, 'adp10390', 'weakpassword')
+    })
+
+    test('a new blog can be created', async ({ page }) => {
+      //
+    })
+  })
 })
