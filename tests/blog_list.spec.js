@@ -112,5 +112,59 @@ describe('Blog app', () => {
       await page.getByRole('button', { name: 'view' }).click()
       await expect(page.getByText('remove')).not.toBeVisible()
     })
+
+    test('blogs are ordered by likes in descending order', async ({ page }) => {
+      // create blogs
+      await createBlog(
+        page,
+        'First Blog',
+        'Author 1',
+        'http://www.example.com/1'
+      )
+      await createBlog(
+        page,
+        'Second Blog',
+        'Author 2',
+        'http://www.example.com/2'
+      )
+      await createBlog(
+        page,
+        'Third Blog',
+        'Author 3',
+        'http://www.example.com/3'
+      )
+
+      // wait for all blogs to be visible
+      await page.waitForSelector('text=First Blog')
+      await page.waitForSelector('text=Second Blog')
+      await page.waitForSelector('text=Third Blog')
+
+      // like the second blog twice and the third blog once
+
+      // first, like second blog once and verify
+      const secondBlog = page.locator('div.blog', { hasText: 'Second Blog' })
+      await secondBlog.getByRole('button', { name: 'view' }).click()
+      await secondBlog.getByRole('button', { name: 'like' }).click()
+      await expect(secondBlog.locator('.like-count')).toHaveText('1')
+      // then like second blog a second time
+      await secondBlog.getByRole('button', { name: 'like' }).click()
+      await expect(secondBlog.locator('.like-count')).toHaveText('2')
+
+      // like third blog once
+
+      const thirdBlog = page.locator('div.blog', { hasText: 'Third Blog' })
+      await thirdBlog.getByRole('button', { name: 'view' }).click()
+      await thirdBlog.getByRole('button', { name: 'like' }).click()
+      await expect(thirdBlog.locator('.like-count')).toHaveText('1')
+
+      // check the order of blogs
+      const blogTitles = await page.locator('.blog-title').allTextContents()
+      expect(blogTitles).toEqual(['Second Blog', 'Third Blog', 'First Blog'])
+
+      // verify likes count
+      const likeCounts = await page.locator('.like-count').allTextContents()
+      const likeCountsNumbers = likeCounts.map(count => parseInt(count))
+      expect(likeCountsNumbers).toEqual([2, 1, 0])
+    })
   })
 })
