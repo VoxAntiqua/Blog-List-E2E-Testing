@@ -83,5 +83,34 @@ describe('Blog app', () => {
 
       await expect(page.getByText('Delete Me deleted')).toBeVisible()
     })
+
+    test('remove button not visible to other users', async ({
+      page,
+      request,
+    }) => {
+      await createBlog(
+        page,
+        'Delete Me',
+        'Delete Me Author',
+        'http://www.example.com/deleteme'
+      )
+
+      await page.getByRole('button', { name: 'view' }).click()
+      await expect(page.getByText('remove')).toBeVisible()
+      await page.getByRole('button', { name: 'logout' }).click()
+      await request.post('http://localhost:3003/api/users', {
+        data: {
+          name: 'Not Andrew Padgett',
+          username: 'voxantiqua',
+          password: 'differentpassword',
+        },
+      })
+      await loginWith(page, 'voxantiqua', 'differentpassword')
+      await expect(
+        page.getByText('Logged in as Not Andrew Padgett')
+      ).toBeVisible()
+      await page.getByRole('button', { name: 'view' }).click()
+      await expect(page.getByText('remove')).not.toBeVisible()
+    })
   })
 })
